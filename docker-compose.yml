@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    environment:
+      # Pass the Supabase DSN via the host environment or a .env file
+      POSTGRES_DSN: ${POSTGRES_DSN}
+      QUEUE_MAX_SIZE: 50000
+      LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    depends_on:
+      backend:
+        condition: service_healthy

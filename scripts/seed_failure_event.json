@@ -1,0 +1,52 @@
+{
+  "scenario": "RDBMS outage causes connection pool exhaustion, triggering MCP Host failures",
+  "events": [
+    {
+      "delay_ms": 0,
+      "signals": [
+        {
+          "component_id": "POSTGRES_PRIMARY_01",
+          "component_type": "RDBMS",
+          "severity": "P0",
+          "error_code": "CONN_POOL_EXHAUSTED",
+          "message": "All 100 connections exhausted. Queries timing out.",
+          "metadata": { "pool_size": 100, "active_connections": 100, "waiting_queries": 247 }
+        }
+      ]
+    },
+    {
+      "delay_ms": 3000,
+      "signals": [
+        {
+          "component_id": "MCP_HOST_CLUSTER_A",
+          "component_type": "MCP_HOST",
+          "severity": "P1",
+          "error_code": "UPSTREAM_DB_UNAVAILABLE",
+          "message": "Cannot acquire DB connection. Returning 503 to clients.",
+          "metadata": { "failed_requests_last_60s": 892, "upstream": "POSTGRES_PRIMARY_01" }
+        },
+        {
+          "component_id": "MCP_HOST_CLUSTER_B",
+          "component_type": "MCP_HOST",
+          "severity": "P1",
+          "error_code": "UPSTREAM_DB_UNAVAILABLE",
+          "message": "Cannot acquire DB connection. Returning 503 to clients.",
+          "metadata": { "failed_requests_last_60s": 654, "upstream": "POSTGRES_PRIMARY_01" }
+        }
+      ]
+    },
+    {
+      "delay_ms": 8000,
+      "signals": [
+        {
+          "component_id": "CACHE_CLUSTER_01",
+          "component_type": "CACHE",
+          "severity": "P2",
+          "error_code": "CACHE_MISS_SPIKE",
+          "message": "Cache miss rate 94% — stale data due to DB write failures.",
+          "metadata": { "miss_rate_percent": 94 }
+        }
+      ]
+    }
+  ]
+}
